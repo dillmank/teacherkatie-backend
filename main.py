@@ -42,8 +42,9 @@ def slots():
 
                 event = {
                     "title": "Available",
-                    "start": start_dt.strftime('%Y-%m-%dT%H:%M:%S'),
-                    "end": end_dt.strftime('%Y-%m-%dT%H:%M:%S')
+                    "start": start_dt.strftimestart_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+,
+                    "end": end_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
                 }
                 events.append(event)
 
