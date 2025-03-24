@@ -17,16 +17,38 @@ def info():
 
 @app.route('/api/slots')
 def slots():
-    today = datetime.today()
+    from datetime import datetime, timedelta
+
+    # Define your real class schedule clearly
+    session_times = ['09:00', '10:00', '13:00', '14:00']  # sessions clearly defined
+    session_length = timedelta(minutes=45)
+
+    start_date = datetime(2025, 5, 5)
+    end_date = datetime(2025, 7, 31)
+
+    # Dates for no classes
+    vacation_start = datetime(2025, 6, 30)
+    vacation_end = datetime(2025, 7, 3)
+
     events = []
-    for i in range(1, 10):  # Generate slots for next 10 days
-        slot_date = today + timedelta(days=i)
-        event = {
-            "title": "Available",
-            "start": slot_date.strftime("%Y-%m-%dT16:00:00"), # 4pm slot example
-            "end": slot_date.strftime("%Y-%m-%dT17:00:00")    # 1-hour session
-        }
-        events.append(event)
+    current_date = start_date
+
+    while current_date <= end_date:
+        # Check if it's Mon-Thu and NOT during vacation
+        if current_date.weekday() in [0,1,2,3] and not (vacation_start <= current_date <= vacation_end):
+            for session_time in session_times:
+                start_dt = datetime.strptime(f"{current_date.date()}T{session_time}", '%Y-%m-%dT%H:%M')
+                end_dt = start_dt + session_length
+
+                event = {
+                    "title": "Available",
+                    "start": start_dt.strftime('%Y-%m-%dT%H:%M:%S'),
+                    "end": end_dt.strftime('%Y-%m-%dT%H:%M:%S')
+                }
+                events.append(event)
+
+        current_date += timedelta(days=1)
+
     return jsonify(events)
 
 if __name__ == '__main__':
@@ -52,7 +74,7 @@ def create_checkout_session():
             'price_data': {
                 'currency': 'usd',
                 'product_data': {'name': 'Tutoring Session'},
-                'unit_amount': 2500,  # $25 example session
+                'unit_amount': 3500,  # $35 example session
             },
             'quantity': 1,
         }],
