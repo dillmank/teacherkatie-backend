@@ -20,7 +20,7 @@ def health():
 @app.route('/api/info')
 def info():
     return jsonify({"app": "Teacher Katie API", "version": "1.0"})
-
+    
 @app.route('/api/slots')
 def slots():
     session_times = ['09:00', '10:00', '13:00', '14:00']  # 24-hour format
@@ -51,6 +51,39 @@ def slots():
                 events.append({
                     "title": "Available",
                     "start": start_dt.strftime('%Y-%m-%dT%H:%M:%S'),
-                    "end": end_dt.strftime('%Y-%m-%dT%H:%M:%S_
+                    "end": end_dt.strftime('%Y-%m-%dT%H:%M:%S')
+                })
+
+        current_date += timedelta(days=1)
+
+    return jsonify(events)
+
+
+@app.route('/api/create-checkout-session', methods=['POST'])
+def create_checkout_session():
+    data = request.json
+    session = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        line_items=[{
+            'price_data': {
+                'currency': 'usd',
+                'product_data': {'name': 'Tutoring Session'},
+                'unit_amount': 3500,  # $35 per session in cents
+            },
+            'quantity': 1,
+        }],
+        mode='payment',
+        customer_email=data['email'],
+        success_url='https://www.teacherkatie.org/success.html',
+        cancel_url='https://www.teacherkatie.org/cancel.html',
+        metadata={
+            'student_name': data['name'],
+            'session_datetime': data['session_datetime']
+        }
+    )
+    return jsonify({'id': session.id})
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=10000)
 
 
