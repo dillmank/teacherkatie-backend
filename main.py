@@ -62,15 +62,21 @@ def slots():
 @app.route('/api/create-checkout-session', methods=['POST'])
 def create_checkout_session():
     data = request.json
+    sessions = data.get('sessions', [])
+    quantity = len(sessions)
+
+    if quantity == 0:
+        return jsonify({'error': 'No sessions selected'}), 400
+
     session = stripe.checkout.Session.create(
         payment_method_types=['card'],
         line_items=[{
             'price_data': {
                 'currency': 'usd',
                 'product_data': {'name': 'Tutoring Session'},
-                'unit_amount': 3500,  # $35 per session in cents
+                'unit_amount': 3500,  # $35 per session
             },
-            'quantity': 1,
+            'quantity': quantity,
         }],
         mode='payment',
         customer_email=data['email'],
@@ -78,10 +84,11 @@ def create_checkout_session():
         cancel_url='https://www.teacherkatie.org/cancel.html',
         metadata={
             'student_name': data['name'],
-            'session_datetime': data['session_datetime']
+            'session_datetimes': ','.join(sessions)
         }
     )
     return jsonify({'id': session.id})
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
