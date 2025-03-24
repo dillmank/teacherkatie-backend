@@ -31,12 +31,15 @@ def slots():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
-import os
+
 from flask import Flask, jsonify, request
+from flask_cors import CORS
+import os
 import stripe
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
+CORS(app)
 
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')  # Set via Render environment variable
 
