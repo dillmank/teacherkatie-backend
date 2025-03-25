@@ -74,7 +74,7 @@ def create_checkout_session():
             'price_data': {
                 'currency': 'usd',
                 'product_data': {'name': 'Tutoring Session'},
-                'unit_amount': 3000,  # $30 per session (you had 3000, not 3500)
+                'unit_amount': 2500,  # $25 per session
             },
             'quantity': quantity,
         }],
