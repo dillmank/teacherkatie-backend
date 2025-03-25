@@ -80,6 +80,8 @@ def create_checkout_session():
         }],
         mode='payment',
         customer_email=data['email'],
+        session = stripe.checkout.Session.create(
+        allow_promotion_codes=True,
         success_url='https://www.teacherkatie.org/success.html',
         cancel_url='https://www.teacherkatie.org/cancel.html',
         metadata={
