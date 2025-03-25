@@ -74,14 +74,13 @@ def create_checkout_session():
             'price_data': {
                 'currency': 'usd',
                 'product_data': {'name': 'Tutoring Session'},
-                'unit_amount': 3500,  # $35 per session
+                'unit_amount': 3000,  # $30 per session (you had 3000, not 3500)
             },
             'quantity': quantity,
         }],
         mode='payment',
         customer_email=data['email'],
-        session = stripe.checkout.Session.create(
-        allow_promotion_codes=True,
+        allow_promotion_codes=True,  # ✅ this enables the coupon field
         success_url='https://www.teacherkatie.org/success.html',
         cancel_url='https://www.teacherkatie.org/cancel.html',
         metadata={
@@ -89,7 +88,9 @@ def create_checkout_session():
             'session_datetimes': ','.join(sessions)
         }
     )
+
     return jsonify({'id': session.id})
+
 
 
 if __name__ == '__main__':
