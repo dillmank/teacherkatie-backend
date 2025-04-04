@@ -62,8 +62,6 @@ def slots():
 
     return jsonify(events)
 
-
-@app.route('/api/create-checkout-session', methods=['POST'])
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
