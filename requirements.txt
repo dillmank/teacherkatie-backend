@@ -1,4 +1,5 @@
 Flask
-gunicorn
-stripe
 flask-cors
+stripe
+gunicorn
+python-dotenv
