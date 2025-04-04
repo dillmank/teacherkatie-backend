@@ -60,6 +60,11 @@ def slots():
 
 
 @app.route('/api/create-checkout-session', methods=['POST'])
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+@app.route('/api/create-checkout-session', methods=['POST'])
 def create_checkout_session():
     data = request.json
     sessions = data.get('sessions', [])
@@ -68,26 +73,70 @@ def create_checkout_session():
     if quantity == 0:
         return jsonify({'error': 'No sessions selected'}), 400
 
+    customer_email = data['email']
+    student_name = data['name']
+
     session = stripe.checkout.Session.create(
         payment_method_types=['card'],
         line_items=[{
             'price_data': {
                 'currency': 'usd',
                 'product_data': {'name': 'Tutoring Session'},
-                'unit_amount': 2500,  # $25 per session
+                'unit_amount': 3000,
             },
             'quantity': quantity,
         }],
         mode='payment',
-        customer_email=data['email'],
-        allow_promotion_codes=True,  # ✅ this enables the coupon field
+        customer_email=customer_email,
+        allow_promotion_codes=True,
         success_url='https://www.teacherkatie.org/success.html',
         cancel_url='https://www.teacherkatie.org/cancel.html',
         metadata={
-            'student_name': data['name'],
+            'student_name': student_name,
             'session_datetimes': ','.join(sessions)
         }
     )
+
+    # Brevo SMTP email sending clearly
+    smtp_server = os.getenv('BREVO_SMTP_SERVER')
+    smtp_port = int(os.getenv('BREVO_SMTP_PORT'))
+    smtp_user = os.getenv('BREVO_SMTP_USERNAME')
+    smtp_pass = os.getenv('BREVO_SMTP_PASSWORD')
+
+    subject = "Your Tutoring Sessions Confirmation"
+    sender_email = smtp_user
+    receiver_email = customer_email
+
+    # Email content clearly formatted
+    session_list = "\n".join([
+        f"- {datetime.fromisoformat(dt).strftime('%A, %B %d, %Y %I:%M %p')}" for dt in sessions
+    ])
+
+    email_body = f"""
+    Hello {student_name},
+
+    Your tutoring sessions have been successfully booked!
+
+    Sessions booked:
+    {session_list}
+
+    Thank you!
+    Teacher Katie
+    """
+
+    message = MIMEMultipart()
+    message["From"] = sender_email
+    message["To"] = receiver_email
+    message["Subject"] = subject
+    message.attach(MIMEText(email_body, "plain"))
+
+    try:
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(smtp_user, smtp_pass)
+            server.sendmail(sender_email, receiver_email, message.as_string())
+    except Exception as e:
+        print(f"Error sending email: {e}")  # logs clearly in Render
 
     return jsonify({'id': session.id})
 
